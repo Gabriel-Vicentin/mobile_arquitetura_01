@@ -1,4 +1,86 @@
-# FlutterApiTest
+# Product App — Flutter + API REST
+
+Aplicativo Flutter desenvolvido como projeto acadêmico para a disciplina de Desenvolvimento Mobile. O objetivo é demonstrar na prática o consumo de uma API REST, autenticação com JWT, navegação entre telas e boas práticas de arquitetura em camadas.
+
+## Funcionalidades
+
+- Login com autenticação via API (`dummyjson.com/auth`)
+- Listagem de produtos com imagem, preço e estoque
+- Tela de detalhes de cada produto
+- Marcar/desmarcar produtos como favoritos (em memória durante a sessão)
+- Logout e proteção de rotas — telas acessíveis apenas com sessão ativa
+
+## API utilizada
+
+[DummyJSON](https://dummyjson.com) — API pública gratuita para testes, sem necessidade de cadastro.
+
+| Endpoint | Descrição |
+|---|---|
+| `POST /auth/login` | Autenticação e geração de token JWT |
+| `GET /auth/me` | Dados do usuário autenticado |
+| `GET /products` | Lista todos os produtos |
+| `GET /products/:id` | Detalhes de um produto |
+
+**Credenciais de teste:**
+
+```
+Usuário: emilys
+Senha:   emilyspass
+```
+
+## Pré-requisitos
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) >= 3.11
+- Dart >= 3.11
+- Android Studio / VS Code com extensão Flutter
+- Emulador Android/iOS ou dispositivo físico
+
+Verifique se o ambiente está configurado:
+
+```bash
+flutter doctor
+```
+
+## Como rodar
+
+```bash
+# 1. Entre na pasta do projeto Flutter
+cd product_app
+
+# 2. Instale as dependências
+flutter pub get
+
+# 3. Execute o app (com um emulador/dispositivo conectado)
+flutter run
+```
+
+Para escolher um dispositivo específico:
+
+```bash
+flutter devices          # lista os dispositivos disponíveis
+flutter run -d <id>      # roda no dispositivo desejado
+```
+
+Para build de produção:
+
+```bash
+flutter build apk        # Android
+flutter build ios        # iOS (requer macOS)
+```
+
+## Estrutura de pastas
+
+```
+lib/
+├── main.dart
+├── models/          # Entidades de dados (Product, AuthUser)
+├── services/        # Chamadas HTTP (AuthService, ProductService)
+├── session/         # Estado de sessão e favoritos em memória
+├── pages/           # Telas principais (Login, Listagem, Detalhe)
+└── widgets/         # Componentes reutilizáveis
+```
+
+---
 
 ## Questões sobre Arquitetura
 
@@ -25,7 +107,7 @@ O `ViewModel` não deve realizar chamadas HTTP diretamente pelos seguintes motiv
 
 Se a interface (`ProductPage`) acessasse o `ProductRemoteDatasource` ou o `ProductCacheDatasource` diretamente, as consequências seriam:
 
-- **Acoplamento total entre UI e infraestrutura**: a interface passaria a conhecer detalhes de like URLs, tokens HTTP e estrutura de `ProductModel`, que são preocupações exclusivas da camada de dados.
+- **Acoplamento total entre UI e infraestrutura**: a interface passaria a conhecer detalhes como URLs, tokens HTTP e estrutura de `ProductModel`, que são preocupações exclusivas da camada de dados.
 - **Bypass das regras de negócio e de orquestração**: toda a lógica do `ProductRepositoryImpl` (tentar rede, salvar cache, usar fallback, lançar `Failure`) seria ignorada. A interface teria que reimplementar essa lógica, espalhando responsabilidades pelo código.
 - **Dados crus chegando à UI**: o `DataSource` retorna `ProductModel` (um DTO com lógica de JSON), não a entidade de domínio `Product`. A interface receberia objetos inadequados para a camada de apresentação.
 - **Impossibilidade de trocar a implementação**: se a fonte de dados mudasse (ex.: trocar REST por GraphQL), seria necessário alterar diretamente os Widgets, quebrando o princípio aberto/fechado.
